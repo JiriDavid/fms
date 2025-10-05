@@ -93,8 +93,7 @@ export default function HomePage() {
                 workflows, shareable dashboards, and exportable reports.
               </p>
             </Card>
-          ))}
-        </div>
+          ))}</div>
       </section>
     </div>
   );
