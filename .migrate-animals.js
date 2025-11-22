@@ -23,28 +23,32 @@ async function migrateAnimalExpenses() {
 
   // Find all animals with purchase costs > 0
   const animalsWithCosts = await Animal.find({
-    purchaseCost: { $gt: 0 }
+    purchaseCost: { $gt: 0 },
   }).lean();
 
   console.log(`Found ${animalsWithCosts.length} animals with purchase costs`);
 
   // Check which animals already have expense records
-  const animalIds = animalsWithCosts.map(a => a._id);
+  const animalIds = animalsWithCosts.map((a) => a._id);
   const existingExpenses = await Expense.find({
     livestockBatchId: { $in: animalIds },
-    category: "Livestock"
-  }).select('livestockBatchId').lean();
+    category: "Livestock",
+  })
+    .select("livestockBatchId")
+    .lean();
 
   const existingExpenseIds = new Set(
-    existingExpenses.map(e => e.livestockBatchId.toString())
+    existingExpenses.map((e) => e.livestockBatchId.toString())
   );
 
   // Filter to animals that don't have expense records
   const animalsNeedingExpenses = animalsWithCosts.filter(
-    animal => !existingExpenseIds.has(animal._id.toString())
+    (animal) => !existingExpenseIds.has(animal._id.toString())
   );
 
-  console.log(`${animalsNeedingExpenses.length} animals need expense records created`);
+  console.log(
+    `${animalsNeedingExpenses.length} animals need expense records created`
+  );
 
   if (animalsNeedingExpenses.length === 0) {
     console.log("No migration needed!");
@@ -52,7 +56,7 @@ async function migrateAnimalExpenses() {
   }
 
   // Group by ownerId to get farmers
-  const ownerIds = [...new Set(animalsNeedingExpenses.map(a => a.ownerId))];
+  const ownerIds = [...new Set(animalsNeedingExpenses.map((a) => a.ownerId))];
   const farmers = await Farmer.find({ ownerId: { $in: ownerIds } }).lean();
   const farmerMap = farmers.reduce((acc, f) => {
     acc[f.ownerId] = f;
@@ -60,24 +64,30 @@ async function migrateAnimalExpenses() {
   }, {});
 
   // Create expense records
-  const expensesToCreate = animalsNeedingExpenses.map(animal => {
-    const farmer = farmerMap[animal.ownerId];
-    if (!farmer) {
-      console.warn(`No farmer found for ownerId: ${animal.ownerId}, skipping animal: ${animal.batchName}`);
-      return null;
-    }
+  const expensesToCreate = animalsNeedingExpenses
+    .map((animal) => {
+      const farmer = farmerMap[animal.ownerId];
+      if (!farmer) {
+        console.warn(
+          `No farmer found for ownerId: ${animal.ownerId}, skipping animal: ${animal.batchName}`
+        );
+        return null;
+      }
 
-    return {
-      ownerId: animal.ownerId,
-      farmerId: farmer._id,
-      category: "Livestock",
-      description: `Purchase of ${animal.batchName} (${animal.livestockType})`,
-      amount: animal.purchaseCost,
-      date: animal.acquisitionDate,
-      livestockBatchId: animal._id,
-      notes: `Acquisition cost for ${animal.quantity} ${animal.livestockType}${animal.quantity > 1 ? 's' : ''}`,
-    };
-  }).filter(Boolean);
+      return {
+        ownerId: animal.ownerId,
+        farmerId: farmer._id,
+        category: "Livestock",
+        description: `Purchase of ${animal.batchName} (${animal.livestockType})`,
+        amount: animal.purchaseCost,
+        date: animal.acquisitionDate,
+        livestockBatchId: animal._id,
+        notes: `Acquisition cost for ${animal.quantity} ${
+          animal.livestockType
+        }${animal.quantity > 1 ? "s" : ""}`,
+      };
+    })
+    .filter(Boolean);
 
   if (expensesToCreate.length > 0) {
     await Expense.insertMany(expensesToCreate);

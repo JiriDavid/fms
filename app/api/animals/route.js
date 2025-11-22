@@ -101,7 +101,9 @@ export async function POST(request) {
         amount: Number(purchaseCost),
         date: new Date(acquisitionDate),
         livestockBatchId: animal._id,
-        notes: `Acquisition cost for ${quantity || 1} ${livestockType}${quantity > 1 ? 's' : ''}`,
+        notes: `Acquisition cost for ${quantity || 1} ${livestockType}${
+          quantity > 1 ? "s" : ""
+        }`,
       });
     }
 
@@ -111,7 +113,11 @@ export async function POST(request) {
       type: "health",
       message: `Registered livestock ${batchName} (${
         quantity || 1
-      } ${livestockType})${Number(purchaseCost) > 0 ? ` for $${Number(purchaseCost).toFixed(2)}` : ''}.`,
+      } ${livestockType})${
+        Number(purchaseCost) > 0
+          ? ` for $${Number(purchaseCost).toFixed(2)}`
+          : ""
+      }.`,
     });
 
     return jsonResponse({ data: animal }, { status: 201 });

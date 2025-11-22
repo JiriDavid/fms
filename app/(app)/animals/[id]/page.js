@@ -12,16 +12,11 @@ export default async function AnimalDetailPage({ params }) {
   if (!userId) redirect("/sign-in");
 
   await connectToDatabase();
-  const animalDoc = await Animal.findOne({ _id: id, ownerId: userId })
-    .lean();
+  const animalDoc = await Animal.findOne({ _id: id, ownerId: userId }).lean();
 
   if (!animalDoc) {
     notFound();
   }
 
-  return (
-    <AnimalDetailForm
-      animal={JSON.parse(JSON.stringify(animalDoc))}
-    />
-  );
+  return <AnimalDetailForm animal={JSON.parse(JSON.stringify(animalDoc))} />;
 }

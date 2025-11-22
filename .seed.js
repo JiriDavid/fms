@@ -173,8 +173,8 @@ async function seedFarmer(ownerId, farmerInput) {
 
   // Create expense records for animals with purchase costs
   const animalExpenses = animals
-    .filter(animal => animal.purchaseCost > 0)
-    .map(animal => ({
+    .filter((animal) => animal.purchaseCost > 0)
+    .map((animal) => ({
       ownerId,
       farmerId: farmer._id,
       category: "Livestock",
@@ -182,7 +182,9 @@ async function seedFarmer(ownerId, farmerInput) {
       amount: animal.purchaseCost,
       date: animal.acquisitionDate,
       livestockBatchId: animal._id,
-      notes: `Acquisition cost for ${animal.quantity} ${animal.livestockType}${animal.quantity > 1 ? 's' : ''}`,
+      notes: `Acquisition cost for ${animal.quantity} ${animal.livestockType}${
+        animal.quantity > 1 ? "s" : ""
+      }`,
     }));
 
   if (animalExpenses.length > 0) {
