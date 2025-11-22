@@ -37,9 +37,9 @@ export default function ReportsPage() {
     [startDate, endDate]
   );
 
-  const fetchAnimalGrowth = useCallback(async (categoryId = "") => {
+  const fetchAnimalGrowth = useCallback(async (livestockType = "") => {
     const query = new URLSearchParams();
-    if (categoryId) query.set("categoryId", categoryId);
+    if (livestockType) query.set("livestockType", livestockType);
     const response = await fetch(
       `/api/reports/animal-growth?${query.toString()}`
     );
@@ -83,7 +83,7 @@ export default function ReportsPage() {
         animal.weightHistory.map((entry) => ({
           date: format(new Date(entry.date), "MMM dd"),
           value: entry.weightKg,
-          tagId: animal.tagId,
+          batchName: animal.batchName,
         }))
       )
       .slice(-20);

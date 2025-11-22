@@ -19,9 +19,7 @@ export async function GET(_request, { params }) {
     const { id } = params;
     await connectToDatabase();
 
-    const animal = await Animal.findOne({ _id: id, ownerId })
-      .populate("categoryId", "name")
-      .lean();
+    const animal = await Animal.findOne({ _id: id, ownerId }).lean();
 
     if (!animal) {
       return errorResponse("Animal not found", 404);
@@ -41,14 +39,15 @@ export async function PUT(request, { params }) {
 
     const body = await parseRequestBody(request);
     const {
-      tagId,
-      name,
-      categoryId,
-      gender,
-      status,
-      dateOfBirth,
-      purchaseDate,
-      purchasePrice,
+      livestockType,
+      breed,
+      batchName,
+      quantity,
+      acquisitionDate,
+      purchaseCost,
+      costType,
+      purpose,
+      location,
       notes,
       weightHistory = [],
       healthRecords = [],
@@ -60,28 +59,19 @@ export async function PUT(request, { params }) {
       return errorResponse("Animal not found", 404);
     }
 
-    if (categoryId) {
-      const category = await AnimalCategory.findOne({
-        _id: categoryId,
-        ownerId,
-      });
-      if (!category) {
-        return errorResponse("Category not found", 404);
-      }
-      animal.categoryId = categoryId;
-    }
-
     Object.assign(animal, {
-      tagId: tagId ?? animal.tagId,
-      name,
-      gender: gender ?? animal.gender,
-      status: status ?? animal.status,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : animal.dateOfBirth,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : animal.purchaseDate,
-      purchasePrice:
-        purchasePrice === undefined || purchasePrice === null
-          ? animal.purchasePrice
-          : Number(purchasePrice),
+      livestockType: livestockType ?? animal.livestockType,
+      breed: breed ?? animal.breed,
+      batchName: batchName ?? animal.batchName,
+      quantity: quantity ? Number(quantity) : animal.quantity,
+      acquisitionDate: acquisitionDate
+        ? new Date(acquisitionDate)
+        : animal.acquisitionDate,
+      purchaseCost:
+        purchaseCost !== undefined ? Number(purchaseCost) : animal.purchaseCost,
+      costType: costType ?? animal.costType,
+      purpose: purpose ?? animal.purpose,
+      location: location ?? animal.location,
       notes,
     });
 
@@ -116,7 +106,7 @@ export async function PUT(request, { params }) {
     return jsonResponse({ data: animal });
   } catch (error) {
     if (error.code === 11000) {
-      return errorResponse("Tag already exists for this farm", 409);
+      return errorResponse("Batch name already exists for this farm", 409);
     }
     return errorResponse(error);
   }

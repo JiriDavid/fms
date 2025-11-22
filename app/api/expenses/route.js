@@ -11,6 +11,7 @@ import {
 import { ensureFarmerProfile } from "@/lib/farmers";
 import { logActivity } from "@/lib/activity";
 import Expense from "@/models/Expense";
+import Animal from "@/models/Animal";
 
 export async function GET(request) {
   try {
@@ -40,10 +41,21 @@ export async function POST(request) {
     const ownerId = await requireUserId();
     await connectToDatabase();
     const body = await parseRequestBody(request);
-    const { date, category, amount, notes } = body;
+    const {
+      category,
+      description,
+      amount,
+      date,
+      livestockBatchId,
+      supplier,
+      notes,
+    } = body;
 
-    if (!date || !category || amount === undefined) {
-      return errorResponse("Date, category, and amount are required", 400);
+    if (!category || !description || amount === undefined || !date) {
+      return errorResponse(
+        "Category, description, amount, and date are required",
+        400
+      );
     }
 
     const clerkUser = await getCurrentUser();
@@ -52,12 +64,23 @@ export async function POST(request) {
       email: clerkUser?.emailAddresses?.[0]?.emailAddress,
     });
 
+    // Validate livestockBatchId if provided
+    if (livestockBatchId) {
+      const animal = await Animal.findOne({ _id: livestockBatchId, ownerId });
+      if (!animal) {
+        return errorResponse("Livestock batch not found", 404);
+      }
+    }
+
     const expense = await Expense.create({
       ownerId,
       farmerId: farmer._id,
-      date: new Date(date),
       category,
+      description,
       amount: Number(amount),
+      date: new Date(date),
+      livestockBatchId: livestockBatchId || undefined,
+      supplier: supplier || undefined,
       notes,
     });
 
@@ -65,7 +88,9 @@ export async function POST(request) {
       ownerId,
       farmerId: farmer._id,
       type: "expense",
-      message: `Recorded expense ${category} ($${Number(amount).toFixed(2)}).`,
+      message: `Recorded ${category} expense: ${description} ($${Number(
+        amount
+      ).toFixed(2)}).`,
       relatedEntityId: expense._id,
     });
 

@@ -12,6 +12,7 @@ import { ensureFarmerProfile } from "@/lib/farmers";
 import { logActivity } from "@/lib/activity";
 import Animal from "@/models/Animal";
 import AnimalCategory from "@/models/AnimalCategory";
+import Expense from "@/models/Expense";
 
 export async function GET(request) {
   try {
@@ -19,17 +20,14 @@ export async function GET(request) {
     await connectToDatabase();
 
     const { searchParams } = new URL(request.url);
-    const categoryId = searchParams.get("categoryId");
+    const livestockType = searchParams.get("livestockType");
     const status = searchParams.get("status");
 
     const filter = { ownerId };
-    if (categoryId) filter.categoryId = categoryId;
+    if (livestockType) filter.livestockType = livestockType;
     if (status) filter.status = status;
 
-    const animals = await Animal.find(filter)
-      .populate("categoryId", "name")
-      .sort({ createdAt: -1 })
-      .lean();
+    const animals = await Animal.find(filter).sort({ createdAt: -1 }).lean();
 
     return jsonResponse({ data: animals });
   } catch (error) {
@@ -44,24 +42,28 @@ export async function POST(request) {
 
     const body = await parseRequestBody(request);
     const {
-      tagId,
-      categoryId,
-      gender,
-      dateOfBirth,
-      purchaseDate,
-      purchasePrice,
-      status,
-      name,
+      livestockType,
+      breed,
+      batchName,
+      quantity,
+      acquisitionDate,
+      purchaseCost,
+      costType,
+      purpose,
+      location,
       notes,
     } = body;
 
-    if (!tagId || !categoryId) {
-      return errorResponse("Tag ID and categoryId are required", 400);
-    }
-
-    const category = await AnimalCategory.findOne({ _id: categoryId, ownerId });
-    if (!category) {
-      return errorResponse("Category not found", 404);
+    if (
+      !livestockType ||
+      !breed ||
+      !batchName ||
+      !acquisitionDate ||
+      !purchaseCost ||
+      !purpose ||
+      !location
+    ) {
+      return errorResponse("All required fields must be provided", 400);
     }
 
     const clerkUser = await getCurrentUser();
@@ -77,28 +79,45 @@ export async function POST(request) {
     const animal = await Animal.create({
       ownerId,
       farmerId: farmer._id,
-      categoryId,
-      tagId,
-      name,
-      gender: gender || "unknown",
-      status: status || "active",
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-      purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
+      livestockType,
+      breed,
+      batchName,
+      quantity: quantity ? Number(quantity) : 1,
+      acquisitionDate: new Date(acquisitionDate),
+      purchaseCost: Number(purchaseCost),
+      costType: costType || "total",
+      purpose,
+      location,
       notes,
     });
+
+    // Create expense record if purchase cost is provided
+    if (Number(purchaseCost) > 0) {
+      await Expense.create({
+        ownerId,
+        farmerId: farmer._id,
+        category: "Livestock",
+        description: `Purchase of ${batchName} (${livestockType})`,
+        amount: Number(purchaseCost),
+        date: new Date(acquisitionDate),
+        livestockBatchId: animal._id,
+        notes: `Acquisition cost for ${quantity || 1} ${livestockType}${quantity > 1 ? 's' : ''}`,
+      });
+    }
 
     await logActivity({
       ownerId,
       farmerId: farmer._id,
       type: "health",
-      message: `Registered animal ${tagId}${name ? ` (${name})` : ""}.`,
+      message: `Registered livestock ${batchName} (${
+        quantity || 1
+      } ${livestockType})${Number(purchaseCost) > 0 ? ` for $${Number(purchaseCost).toFixed(2)}` : ''}.`,
     });
 
     return jsonResponse({ data: animal }, { status: 201 });
   } catch (error) {
     if (error.code === 11000) {
-      return errorResponse("Tag already exists for this farm", 409);
+      return errorResponse("Batch name already exists for this farm", 409);
     }
     return errorResponse(error);
   }

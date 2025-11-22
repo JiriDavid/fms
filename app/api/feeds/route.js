@@ -26,15 +26,30 @@ export async function POST(request) {
     const ownerId = await requireUserId();
     await connectToDatabase();
     const body = await parseRequestBody(request);
-    const { type, supplier, quantityKg, cost, notes } = body;
-    if (!type) return errorResponse("Feed type is required", 400);
+    const {
+      name,
+      unit,
+      quantityPurchased,
+      cost,
+      purchaseDate,
+      supplier,
+      notes,
+    } = body;
+    if (!name) return errorResponse("Feed name is required", 400);
+    if (!unit) return errorResponse("Unit is required", 400);
+    if (!quantityPurchased || quantityPurchased <= 0)
+      return errorResponse("Valid quantity purchased is required", 400);
+    if (!cost || cost < 0) return errorResponse("Valid cost is required", 400);
+    if (!purchaseDate) return errorResponse("Purchase date is required", 400);
 
     const feed = await Feed.create({
       ownerId,
-      type,
+      name,
+      unit,
+      quantityPurchased: Number(quantityPurchased),
+      cost: Number(cost),
+      purchaseDate: new Date(purchaseDate),
       supplier,
-      quantityKg: quantityKg ? Number(quantityKg) : 0,
-      cost: cost ? Number(cost) : 0,
       notes,
     });
 

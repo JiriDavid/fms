@@ -11,6 +11,7 @@ import {
 import { ensureFarmerProfile } from "@/lib/farmers";
 import { logActivity } from "@/lib/activity";
 import Task from "@/models/Task";
+import Animal from "@/models/Animal";
 
 export async function GET(request) {
   try {
@@ -53,6 +54,14 @@ export async function POST(request) {
       ownerId,
       email: clerkUser?.emailAddresses?.[0]?.emailAddress,
     });
+
+    // Validate relatedAnimalId if provided
+    if (relatedAnimalId) {
+      const animal = await Animal.findOne({ _id: relatedAnimalId, ownerId });
+      if (!animal) {
+        return errorResponse("Related livestock batch not found", 404);
+      }
+    }
 
     const task = await Task.create({
       ownerId,

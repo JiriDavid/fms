@@ -30,23 +30,40 @@ export async function POST(request) {
     const body = await parseRequestBody(request);
     const {
       name,
+      purpose,
+      quantityPurchased,
+      unit,
+      cost,
+      purchaseDate,
+      expiryDate,
       supplier,
       batchNumber,
       dosageInstructions,
-      quantityOnHand,
-      expiryDate,
+      notes,
     } = body;
 
-    if (!name) return errorResponse("Name is required", 400);
+    if (!name) return errorResponse("Medicine name is required", 400);
+    if (!purpose) return errorResponse("Purpose is required", 400);
+    if (!unit) return errorResponse("Unit is required", 400);
+    if (!quantityPurchased || quantityPurchased <= 0)
+      return errorResponse("Valid quantity purchased is required", 400);
+    if (!cost || cost < 0) return errorResponse("Valid cost is required", 400);
+    if (!purchaseDate) return errorResponse("Purchase date is required", 400);
+    if (!expiryDate) return errorResponse("Expiry date is required", 400);
 
     const medicine = await Medicine.create({
       ownerId,
       name,
+      purpose,
+      quantityPurchased: Number(quantityPurchased),
+      unit,
+      cost: Number(cost),
+      purchaseDate: new Date(purchaseDate),
+      expiryDate: new Date(expiryDate),
       supplier,
       batchNumber,
       dosageInstructions,
-      quantityOnHand: quantityOnHand ? Number(quantityOnHand) : 0,
-      expiryDate: expiryDate ? new Date(expiryDate) : undefined,
+      notes,
     });
 
     return jsonResponse({ data: medicine }, { status: 201 });

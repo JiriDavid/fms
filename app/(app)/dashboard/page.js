@@ -31,7 +31,7 @@ async function getDashboardData(ownerId) {
     Animal.countDocuments({ ownerId }),
     Animal.aggregate([
       { $match: { ownerId } },
-      { $group: { _id: "$categoryId", count: { $sum: 1 } } },
+      { $group: { _id: "$livestockType", count: { $sum: "$quantity" } } },
       { $limit: 5 },
     ]),
     Sale.aggregate([
@@ -58,7 +58,7 @@ async function getDashboardData(ownerId) {
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
-          count: { $sum: 1 },
+          count: { $sum: "$quantity" },
         },
       },
       { $sort: { _id: 1 } },
@@ -86,17 +86,14 @@ async function getDashboardData(ownerId) {
   ]);
 
   const categoryIds = categories.map((item) => item._id).filter(Boolean);
-  const categoryDocs = await AnimalCategory.find({
-    _id: { $in: categoryIds },
-  }).lean();
-  const categoryLookup = categoryDocs.reduce((acc, category) => {
-    acc[category._id.toString()] = category.name;
+  const categoryLookup = categories.reduce((acc, item) => {
+    acc[item._id] = item._id;
     return acc;
   }, {});
 
   return {
     totals: {
-      animals: totalAnimals,
+      animals: totalAnimals || 0,
       monthlySales: monthlySales[0]?.total || 0,
       monthlyExpenses: monthlyExpenses[0]?.total || 0,
       monthlyProfit:
@@ -104,7 +101,7 @@ async function getDashboardData(ownerId) {
     },
     categories: categories.map((item) => ({
       id: item._id?.toString() || "uncategorized",
-      label: categoryLookup[item._id?.toString()] || "Uncategorised",
+      label: item._id || "Uncategorised",
       count: item.count,
     })),
     recentActivities,
@@ -137,27 +134,31 @@ export default async function DashboardPage() {
   const data = await getDashboardData(userId);
 
   return (
-    <div className="space-y-10">
-      <header className="space-y-2">
-        <p className="text-sm uppercase tracking-wide text-primary-600">
-          Dashboard
-        </p>
-        <h1 className="text-3xl font-semibold text-slate-800">
-          Welcome back{user?.firstName ? `, ${user.firstName}` : ""} 👋
-        </h1>
-        <p className="text-sm text-slate-500">
-          Overview of your farm performance, herd health, inventory, and
-          finances.
-        </p>
+    <div className="space-y-8">
+      {/* Header Section */}
+      <header className="flex flex-wrap items-center justify-between gap-6">
+        <div>
+          <p className="text-sm uppercase tracking-wide text-primary-600 font-medium">
+            Dashboard
+          </p>
+          <h1 className="text-3xl font-bold text-slate-900">
+            Welcome back{user?.firstName ? `, ${user.firstName}` : ""} 👋
+          </h1>
+          <p className="text-slate-600 mt-1">
+            Overview of your farm performance, herd health, inventory, and
+            finances.
+          </p>
+        </div>
       </header>
 
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <Card title="Total animals" description="Across all categories">
+      {/* Statistics Cards */}
+      <section className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card title="Total livestock" description="Across all types">
           <p className="text-4xl font-bold text-slate-800">
             {data.totals.animals}
           </p>
         </Card>
-        <Card title="Animals by category" description="Top 5 categories">
+        <Card title="Livestock by type" description="Top 5 types">
           <ul className="space-y-2 text-sm text-slate-600">
             {data.categories.map((category) => (
               <li
@@ -171,7 +172,7 @@ export default async function DashboardPage() {
               </li>
             ))}
             {data.categories.length === 0 && (
-              <li>No categories yet. Add your first animal!</li>
+              <li>No types yet. Add your first livestock!</li>
             )}
           </ul>
         </Card>
@@ -193,10 +194,11 @@ export default async function DashboardPage() {
         </Card>
       </section>
 
+      {/* Charts Section */}
       <section className="grid gap-6 lg:grid-cols-2">
         <ChartCard
-          title="Herd size over time"
-          description="Track herd growth month-over-month"
+          title="Livestock size over time"
+          description="Track livestock growth month-over-month"
           data={data.herdTrend}
           dataKey="count"
           xKey="date"
@@ -212,13 +214,14 @@ export default async function DashboardPage() {
         />
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-3">
+      {/* Activity and Quick Actions */}
+      <section className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         <Card
           title="Recent activity"
           description="Latest tasks, sales, expenses, and notes"
         >
           <ul className="space-y-4 text-sm text-slate-600">
-            {data.recentActivities.map((activity) => (
+            {data.recentActivities.slice(0, 4).map((activity) => (
               <li
                 key={activity._id}
                 className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
@@ -234,13 +237,14 @@ export default async function DashboardPage() {
             ))}
             {data.recentActivities.length === 0 && (
               <li>
-                No activity yet. Start by adding animals or logging tasks.
+                No activity yet. Start by adding livestock or logging tasks.
               </li>
             )}
           </ul>
         </Card>
         <Card title="Quick links">
           <Table
+            mobileCardView={true}
             columns={[
               { header: "Action", accessor: "label" },
               {
@@ -256,7 +260,7 @@ export default async function DashboardPage() {
             data={[
               {
                 id: "animals",
-                label: "Register a new animal",
+                label: "Register new livestock",
                 cta: "Add",
                 href: "/animals/new",
               },

@@ -12,7 +12,7 @@ const statuses = [
   { label: "Deceased", value: "deceased" },
 ];
 
-export default function AnimalDetailForm({ animal, categories }) {
+export default function AnimalDetailForm({ animal }) {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -26,18 +26,17 @@ export default function AnimalDetailForm({ animal, categories }) {
 
   const defaultValues = useMemo(
     () => ({
-      tagId: animal.tagId,
-      name: animal.name || "",
-      categoryId: animal.categoryId?._id || animal.categoryId,
-      gender: animal.gender || "unknown",
-      status: animal.status || "active",
-      dateOfBirth: animal.dateOfBirth
-        ? format(new Date(animal.dateOfBirth), "yyyy-MM-dd")
+      livestockType: animal.livestockType,
+      breed: animal.breed,
+      batchName: animal.batchName,
+      quantity: animal.quantity || 1,
+      acquisitionDate: animal.acquisitionDate
+        ? format(new Date(animal.acquisitionDate), "yyyy-MM-dd")
         : "",
-      purchaseDate: animal.purchaseDate
-        ? format(new Date(animal.purchaseDate), "yyyy-MM-dd")
-        : "",
-      purchasePrice: animal.purchasePrice ?? "",
+      purchaseCost: animal.purchaseCost ?? "",
+      costType: animal.costType || "total",
+      purpose: animal.purpose,
+      location: animal.location,
       notes: animal.notes || "",
     }),
     [animal]
@@ -56,9 +55,10 @@ export default function AnimalDetailForm({ animal, categories }) {
     setIsSaving(true);
     const payload = {
       ...formValues,
-      purchasePrice: formValues.purchasePrice
-        ? Number(formValues.purchasePrice)
+      purchaseCost: formValues.purchaseCost
+        ? Number(formValues.purchaseCost)
         : null,
+      quantity: formValues.quantity ? Number(formValues.quantity) : 1,
       weightHistory,
       healthRecords,
       activityMessage,
@@ -81,7 +81,7 @@ export default function AnimalDetailForm({ animal, categories }) {
   }
 
   async function handleDelete() {
-    if (!confirm("Delete this animal record? This action cannot be undone."))
+    if (!confirm("Delete this livestock record? This action cannot be undone."))
       return;
     setIsDeleting(true);
     const response = await fetch(`/api/animals/${animal._id}`, {
@@ -92,7 +92,7 @@ export default function AnimalDetailForm({ animal, categories }) {
       router.refresh();
     } else {
       const error = await response.json();
-      alert(error?.error || "Failed to delete animal.");
+      alert(error?.error || "Failed to delete livestock.");
     }
     setIsDeleting(false);
   }
@@ -135,16 +135,16 @@ export default function AnimalDetailForm({ animal, categories }) {
   return (
     <div className="space-y-8">
       <button className="text-sm text-slate-500" onClick={() => router.back()}>
-        ← Back to animals
+        ← Back to livestock
       </button>
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-wide text-primary-600">
-            Animal
+            Livestock
           </p>
           <h1 className="text-3xl font-semibold text-slate-800">
-            {animal.name || animal.tagId}
+            {animal.batchName}
           </h1>
           <p className="text-sm text-slate-500">
             Manage lifecycle, update weight history, and log health events.
@@ -167,58 +167,92 @@ export default function AnimalDetailForm({ animal, categories }) {
           <div className="space-y-2">
             <label
               className="text-sm font-semibold text-slate-700"
-              htmlFor="tagId"
+              htmlFor="batchName"
             >
-              Tag / EID
+              Batch/Group Name
             </label>
             <input
-              id="tagId"
+              id="batchName"
               className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("tagId", { required: "Tag is required" })}
+              {...register("batchName", { required: "Batch name is required" })}
             />
-            {errors.tagId && (
-              <p className="text-xs text-rose-500">{errors.tagId.message}</p>
+            {errors.batchName && (
+              <p className="text-xs text-rose-500">
+                {errors.batchName.message}
+              </p>
             )}
           </div>
           <div className="space-y-2">
             <label
               className="text-sm font-semibold text-slate-700"
-              htmlFor="name"
+              htmlFor="livestockType"
             >
-              Nickname
+              Livestock Type
             </label>
-            <input
-              id="name"
+            <select
+              id="livestockType"
               className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("name")}
-            />
+              {...register("livestockType", {
+                required: "Livestock type is required",
+              })}
+            >
+              <option value="">Select type</option>
+              <option value="Chicken">Chicken</option>
+              <option value="Duck">Duck</option>
+              <option value="Turkey">Turkey</option>
+              <option value="Goose">Goose</option>
+              <option value="Quail">Quail</option>
+              <option value="Pigeon">Pigeon</option>
+              <option value="Pig">Pig</option>
+              <option value="Sheep">Sheep</option>
+              <option value="Cattle">Cattle</option>
+              <option value="Goat">Goat</option>
+              <option value="Rabbit">Rabbit</option>
+              <option value="Horse">Horse</option>
+              <option value="Donkey">Donkey</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors.livestockType && (
+              <p className="text-xs text-rose-500">
+                {errors.livestockType.message}
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <label
               className="text-sm font-semibold text-slate-700"
-              htmlFor="categoryId"
+              htmlFor="breed"
             >
-              Category
+              Breed
             </label>
-            <select
-              id="categoryId"
+            <input
+              id="breed"
               className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("categoryId", { required: "Category is required" })}
+              {...register("breed", { required: "Breed is required" })}
+            />
+            {errors.breed && (
+              <p className="text-xs text-rose-500">{errors.breed.message}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label
+              className="text-sm font-semibold text-slate-700"
+              htmlFor="quantity"
             >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option
-                  key={category._id || category.id}
-                  value={category._id || category.id}
-                >
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {errors.categoryId && (
-              <p className="text-xs text-rose-500">
-                {errors.categoryId.message}
-              </p>
+              Quantity
+            </label>
+            <input
+              id="quantity"
+              type="number"
+              min="1"
+              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+              {...register("quantity", {
+                validate: (value) =>
+                  !value || Number(value) >= 1 || "Quantity must be at least 1",
+              })}
+            />
+            {errors.quantity && (
+              <p className="text-xs text-rose-500">{errors.quantity.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -243,73 +277,110 @@ export default function AnimalDetailForm({ animal, categories }) {
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-800">Lifecycle</h2>
+          <h2 className="text-lg font-semibold text-slate-800">Details</h2>
           <div className="space-y-2">
             <label
               className="text-sm font-semibold text-slate-700"
-              htmlFor="gender"
+              htmlFor="acquisitionDate"
             >
-              Gender
+              Acquisition Date
+            </label>
+            <input
+              id="acquisitionDate"
+              type="date"
+              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+              {...register("acquisitionDate", {
+                required: "Acquisition date is required",
+              })}
+            />
+            {errors.acquisitionDate && (
+              <p className="text-xs text-rose-500">
+                {errors.acquisitionDate.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label
+              className="text-sm font-semibold text-slate-700"
+              htmlFor="purchaseCost"
+            >
+              Purchase Cost
+            </label>
+            <input
+              id="purchaseCost"
+              type="number"
+              step="0.01"
+              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
+              {...register("purchaseCost", {
+                required: "Purchase cost is required",
+                validate: (value) =>
+                  !value || Number(value) >= 0 || "Cost must be positive",
+              })}
+            />
+            {errors.purchaseCost && (
+              <p className="text-xs text-rose-500">
+                {errors.purchaseCost.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label
+              className="text-sm font-semibold text-slate-700"
+              htmlFor="costType"
+            >
+              Cost Type
             </label>
             <select
-              id="gender"
+              id="costType"
               className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("gender")}
+              {...register("costType")}
             >
-              <option value="unknown">Unknown</option>
-              <option value="female">Female</option>
-              <option value="male">Male</option>
+              <option value="total">Total cost</option>
+              <option value="per_unit">Per unit</option>
             </select>
           </div>
           <div className="space-y-2">
             <label
               className="text-sm font-semibold text-slate-700"
-              htmlFor="dateOfBirth"
+              htmlFor="purpose"
             >
-              Date of birth
+              Purpose
             </label>
-            <input
-              id="dateOfBirth"
-              type="date"
+            <select
+              id="purpose"
               className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("dateOfBirth")}
-            />
+              {...register("purpose", { required: "Purpose is required" })}
+            >
+              <option value="">Select purpose</option>
+              <option value="Broiler">Broiler</option>
+              <option value="Layer">Layer</option>
+              <option value="Breeder">Breeder</option>
+              <option value="Meat">Meat</option>
+              <option value="Milk">Milk</option>
+              <option value="Wool">Wool</option>
+              <option value="Work">Work</option>
+              <option value="Breeding">Breeding</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors.purpose && (
+              <p className="text-xs text-rose-500">{errors.purpose.message}</p>
+            )}
           </div>
           <div className="space-y-2">
             <label
               className="text-sm font-semibold text-slate-700"
-              htmlFor="purchaseDate"
+              htmlFor="location"
             >
-              Purchase date
+              Location/Housing
             </label>
             <input
-              id="purchaseDate"
-              type="date"
+              id="location"
+              type="text"
               className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("purchaseDate")}
+              {...register("location", { required: "Location is required" })}
             />
-          </div>
-          <div className="space-y-2">
-            <label
-              className="text-sm font-semibold text-slate-700"
-              htmlFor="purchasePrice"
-            >
-              Purchase price (USD)
-            </label>
-            <input
-              id="purchasePrice"
-              type="number"
-              step="0.01"
-              className="w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-100"
-              {...register("purchasePrice", {
-                validate: (value) =>
-                  !value || Number(value) >= 0 || "Price must be positive",
-              })}
-            />
-            {errors.purchasePrice && (
-              <p className="text-xs text-rose-500">
-                {errors.purchasePrice.message}
-              </p>
+            {errors.location && (
+              <p className="text-xs text-rose-500">{errors.location.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -350,7 +421,7 @@ export default function AnimalDetailForm({ animal, categories }) {
             disabled={isDeleting}
             className="rounded-full border border-rose-200 px-5 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isDeleting ? "Deleting..." : "Delete animal"}
+            {isDeleting ? "Deleting..." : "Delete livestock"}
           </button>
           <button
             type="submit"

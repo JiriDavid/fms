@@ -1,13 +1,14 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-import { requireUserId } from "@/lib/auth";
+import { requireUserId, getCurrentUser } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   jsonResponse,
   errorResponse,
   parseRequestBody,
 } from "@/lib/api-helpers";
+import { ensureFarmerProfile } from "@/lib/farmers";
 import { logActivity } from "@/lib/activity";
 import UsageLog from "@/models/UsageLog";
 import Animal from "@/models/Animal";
@@ -18,15 +19,15 @@ export async function GET(request) {
     await connectToDatabase();
 
     const { searchParams } = new URL(request.url);
-    const animalId = searchParams.get("animalId");
+    const livestockBatchId = searchParams.get("livestockBatchId");
 
     const filter = { ownerId };
-    if (animalId) filter.animalId = animalId;
+    if (livestockBatchId) filter.livestockBatchId = livestockBatchId;
 
     const logs = await UsageLog.find(filter)
-      .populate("animalId", "tagId name")
+      .populate("livestockBatchId", "batchName livestockType")
       .populate("medicineId", "name")
-      .populate("feedId", "type")
+      .populate("feedId", "name")
       .sort({ date: -1 })
       .lean();
 
@@ -41,29 +42,48 @@ export async function POST(request) {
     const ownerId = await requireUserId();
     await connectToDatabase();
     const body = await parseRequestBody(request);
-    const { animalId, medicineId, feedId, quantity, unit, date, notes } = body;
+    const {
+      livestockBatchId,
+      medicineId,
+      feedId,
+      quantity,
+      unit,
+      date,
+      reason,
+      notes,
+    } = body;
 
-    if (!animalId || (!medicineId && !feedId)) {
-      return errorResponse("Animal and medicineId or feedId are required", 400);
+    if (!livestockBatchId || (!medicineId && !feedId)) {
+      return errorResponse(
+        "Livestock batch and medicineId or feedId are required",
+        400
+      );
+    }
+
+    // Validate that the animal exists and belongs to the owner
+    const animal = await Animal.findOne({ _id: livestockBatchId, ownerId });
+    if (!animal) {
+      return errorResponse("Livestock batch not found", 404);
     }
 
     const log = await UsageLog.create({
       ownerId,
-      animalId,
+      farmerId: animal.farmerId,
+      livestockBatchId,
       medicineId: medicineId || undefined,
       feedId: feedId || undefined,
       quantity: Number(quantity),
       unit: unit || "kg",
       date: date ? new Date(date) : new Date(),
+      reason: reason || undefined, // Only for medicine usage
       notes,
     });
 
-    const animal = await Animal.findById(animalId);
     await logActivity({
       ownerId,
-      farmerId: animal?.farmerId,
+      farmerId: animal.farmerId,
       type: "inventory",
-      message: `Logged usage for ${animal?.tagId || "animal"}.`,
+      message: `Logged usage for ${animal.batchName || "livestock batch"}.`,
       relatedEntityId: log._id,
     });
 

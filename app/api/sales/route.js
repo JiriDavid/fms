@@ -11,6 +11,7 @@ import {
 import { ensureFarmerProfile } from "@/lib/farmers";
 import { logActivity } from "@/lib/activity";
 import Sale from "@/models/Sale";
+import Animal from "@/models/Animal";
 
 export async function GET(request) {
   try {
@@ -40,24 +41,29 @@ export async function POST(request) {
     const ownerId = await requireUserId();
     await connectToDatabase();
     const body = await parseRequestBody(request);
-    const { date, buyer, items = [], notes } = body;
+    const {
+      productSold,
+      quantity,
+      unitPrice,
+      totalAmount,
+      saleDate,
+      buyer,
+      livestockBatchId,
+      notes,
+    } = body;
 
-    if (!date || !buyer) {
-      return errorResponse("Date and buyer are required", 400);
+    if (
+      !productSold ||
+      !quantity ||
+      unitPrice === undefined ||
+      !totalAmount ||
+      !saleDate
+    ) {
+      return errorResponse(
+        "Product sold, quantity, unit price, total amount, and sale date are required",
+        400
+      );
     }
-
-    const normalizedItems = (Array.isArray(items) ? items : [items]).map(
-      (item) => ({
-        animalId: item.animalId || undefined,
-        description: item.description || "Animal sale",
-        amount: Number(item.amount || item.price || 0),
-      })
-    );
-
-    const totalAmount = normalizedItems.reduce(
-      (sum, item) => sum + (item.amount || 0),
-      0
-    );
 
     const clerkUser = await getCurrentUser();
     const farmer = await ensureFarmerProfile({
@@ -65,13 +71,24 @@ export async function POST(request) {
       email: clerkUser?.emailAddresses?.[0]?.emailAddress,
     });
 
+    // Validate livestockBatchId if provided
+    if (livestockBatchId) {
+      const animal = await Animal.findOne({ _id: livestockBatchId, ownerId });
+      if (!animal) {
+        return errorResponse("Livestock batch not found", 404);
+      }
+    }
+
     const sale = await Sale.create({
       ownerId,
       farmerId: farmer._id,
-      date: new Date(date),
-      buyer,
-      items: normalizedItems,
-      totalAmount,
+      productSold,
+      quantity: Number(quantity),
+      unitPrice: Number(unitPrice),
+      totalAmount: Number(totalAmount),
+      saleDate: new Date(saleDate),
+      buyer: buyer || undefined,
+      livestockBatchId: livestockBatchId || undefined,
       notes,
     });
 
@@ -79,7 +96,9 @@ export async function POST(request) {
       ownerId,
       farmerId: farmer._id,
       type: "sale",
-      message: `Recorded sale to ${buyer} ($${totalAmount.toFixed(2)}).`,
+      message: `Recorded sale of ${quantity} ${productSold} for $${totalAmount.toFixed(
+        2
+      )}.`,
       relatedEntityId: sale._id,
     });
 

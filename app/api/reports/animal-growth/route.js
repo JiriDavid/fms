@@ -12,9 +12,9 @@ export async function GET(request) {
     await connectToDatabase();
 
     const { searchParams } = new URL(request.url);
-    const categoryId = searchParams.get("categoryId");
+    const livestockType = searchParams.get("livestockType");
 
-    const data = await getAnimalGrowth(ownerId, categoryId || undefined);
+    const data = await getAnimalGrowth(ownerId, livestockType || undefined);
     return jsonResponse({ data });
   } catch (error) {
     return errorResponse(error);

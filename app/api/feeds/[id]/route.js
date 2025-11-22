@@ -18,9 +18,10 @@ export async function PUT(request, { params }) {
 
     const body = await parseRequestBody(request);
     const update = { ...body };
-    if (body.quantityKg !== undefined)
-      update.quantityKg = Number(body.quantityKg);
+    if (body.quantityPurchased !== undefined)
+      update.quantityPurchased = Number(body.quantityPurchased);
     if (body.cost !== undefined) update.cost = Number(body.cost);
+    if (body.purchaseDate) update.purchaseDate = new Date(body.purchaseDate);
 
     const feed = await Feed.findOneAndUpdate({ _id: id, ownerId }, update, {
       new: true,

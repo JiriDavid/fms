@@ -38,16 +38,16 @@ export async function GET(request, { params }) {
         ["metric", "value"]
       );
     } else if (type === "animal-growth") {
-      const categoryId = searchParams.get("categoryId");
-      const data = await getAnimalGrowth(ownerId, categoryId || undefined);
+      const livestockType = searchParams.get("livestockType");
+      const data = await getAnimalGrowth(ownerId, livestockType || undefined);
       const rows = data.flatMap((animal) =>
         animal.weightHistory.map((entry) => ({
-          tagId: animal.tagId,
+          batchName: animal.batchName,
           date: entry.date,
           weightKg: entry.weightKg,
         }))
       );
-      csv = toCSV(rows, ["tagId", "date", "weightKg"]);
+      csv = toCSV(rows, ["batchName", "date", "weightKg"]);
     } else if (type === "feed-consumption") {
       const feedData = await getFeedConsumption(ownerId, UsageLog, {
         startDate,

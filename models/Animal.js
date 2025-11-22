@@ -26,19 +26,52 @@ const AnimalSchema = new Schema(
   {
     ownerId: { type: String, index: true, required: true },
     farmerId: { type: Schema.Types.ObjectId, ref: "Farmer", required: true },
-    categoryId: {
-      type: Schema.Types.ObjectId,
-      ref: "AnimalCategory",
-      required: true,
-    },
-    tagId: { type: String, required: true },
-    name: { type: String },
-    gender: {
+    livestockType: {
       type: String,
-      enum: ["male", "female", "unknown"],
-      default: "unknown",
+      required: true,
+      enum: [
+        "Chicken",
+        "Duck",
+        "Turkey",
+        "Goose",
+        "Quail",
+        "Pigeon",
+        "Pig",
+        "Sheep",
+        "Cattle",
+        "Goat",
+        "Rabbit",
+        "Horse",
+        "Donkey",
+        "Other",
+      ],
     },
-    dateOfBirth: { type: Date },
+    breed: { type: String, required: true },
+    batchName: { type: String, required: true },
+    quantity: { type: Number, default: 1, min: 1 },
+    acquisitionDate: { type: Date, required: true },
+    purchaseCost: { type: Number, required: true, min: 0 },
+    costType: {
+      type: String,
+      enum: ["per_unit", "total"],
+      default: "total",
+    },
+    purpose: {
+      type: String,
+      required: true,
+      enum: [
+        "Broiler",
+        "Layer",
+        "Breeder",
+        "Meat",
+        "Milk",
+        "Wool",
+        "Work",
+        "Breeding",
+        "Other",
+      ],
+    },
+    location: { type: String, required: true },
     status: {
       type: String,
       enum: ["active", "sold", "deceased"],
@@ -46,13 +79,11 @@ const AnimalSchema = new Schema(
     },
     weightHistory: { type: [WeightSchema], default: [] },
     healthRecords: { type: [HealthRecordSchema], default: [] },
-    purchaseDate: { type: Date },
-    purchasePrice: { type: Number },
     notes: { type: String },
   },
   { timestamps: true }
 );
 
-AnimalSchema.index({ ownerId: 1, tagId: 1 }, { unique: true });
+AnimalSchema.index({ ownerId: 1, batchName: 1 }, { unique: true });
 
 export default mongoose.models.Animal || mongoose.model("Animal", AnimalSchema);

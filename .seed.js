@@ -33,7 +33,6 @@ function daysAgo(number) {
 async function seedFarmer(ownerId, farmerInput) {
   await Promise.all([
     Animal.deleteMany({ ownerId }),
-    AnimalCategory.deleteMany({ ownerId }),
     Medicine.deleteMany({ ownerId }),
     Feed.deleteMany({ ownerId }),
     UsageLog.deleteMany({ ownerId }),
@@ -49,79 +48,20 @@ async function seedFarmer(ownerId, farmerInput) {
     setDefaultsOnInsert: true,
   });
 
-  const categories = await AnimalCategory.insertMany([
-    { ownerId, name: "Cattle", description: "Dairy and beef herd" },
-    { ownerId, name: "Goat", description: "Boer meat goats" },
-    { ownerId, name: "Chicken", description: "Layers and broilers" },
-  ]);
-
-  const categoryByName = categories.reduce((acc, category) => {
-    acc[category.name] = category._id;
-    return acc;
-  }, {});
-
   const animals = await Animal.insertMany([
     {
       ownerId,
       farmerId: farmer._id,
-      categoryId: categoryByName.Cattle,
-      tagId: `CAT-${ownerId.slice(-4)}-001`,
-      name: "Bella",
-      gender: "female",
+      livestockType: "Chicken",
+      breed: "Rhode Island Red",
+      batchName: "Broiler Batch 2025-001",
+      quantity: 50,
+      acquisitionDate: daysAgo(45),
+      purchaseCost: 60,
+      costType: "per_unit",
+      purpose: "Broiler",
+      location: "Coop A",
       status: "active",
-      dateOfBirth: daysAgo(800),
-      purchaseDate: daysAgo(420),
-      purchasePrice: 1200,
-      weightHistory: [
-        { date: daysAgo(365), weightKg: 380 },
-        { date: daysAgo(180), weightKg: 410 },
-        { date: daysAgo(30), weightKg: 435 },
-      ],
-      healthRecords: [
-        {
-          date: daysAgo(200),
-          type: "vaccination",
-          description: "Foot-and-mouth booster",
-          administeredBy: "Dr. Singh",
-        },
-      ],
-    },
-    {
-      ownerId,
-      farmerId: farmer._id,
-      categoryId: categoryByName.Goat,
-      tagId: `GOA-${ownerId.slice(-4)}-015`,
-      name: "Sprout",
-      gender: "female",
-      status: "active",
-      dateOfBirth: daysAgo(300),
-      purchaseDate: daysAgo(250),
-      purchasePrice: 180,
-      weightHistory: [
-        { date: daysAgo(200), weightKg: 32 },
-        { date: daysAgo(90), weightKg: 35 },
-        { date: daysAgo(7), weightKg: 37 },
-      ],
-      healthRecords: [
-        {
-          date: daysAgo(30),
-          type: "vaccination",
-          description: "Clostridial vaccine",
-          administeredBy: "Nurse Patel",
-        },
-      ],
-    },
-    {
-      ownerId,
-      farmerId: farmer._id,
-      categoryId: categoryByName.Chicken,
-      tagId: `CHK-${ownerId.slice(-4)}-201`,
-      name: "Broiler Batch 201",
-      gender: "unknown",
-      status: "active",
-      dateOfBirth: daysAgo(50),
-      purchaseDate: daysAgo(45),
-      purchasePrice: 60,
       weightHistory: [
         { date: daysAgo(40), weightKg: 0.8 },
         { date: daysAgo(20), weightKg: 1.4 },
@@ -129,7 +69,125 @@ async function seedFarmer(ownerId, farmerInput) {
       ],
       healthRecords: [],
     },
+    {
+      ownerId,
+      farmerId: farmer._id,
+      livestockType: "Chicken",
+      breed: "Leghorn",
+      batchName: "Layer Batch 2025-002",
+      quantity: 100,
+      acquisitionDate: daysAgo(30),
+      purchaseCost: 1500,
+      costType: "total",
+      purpose: "Layer",
+      location: "Coop B",
+      status: "active",
+      weightHistory: [],
+      healthRecords: [],
+    },
+    {
+      ownerId,
+      farmerId: farmer._id,
+      livestockType: "Pig",
+      breed: "Large White",
+      batchName: "Weaner Pigs 2025-003",
+      quantity: 20,
+      acquisitionDate: daysAgo(60),
+      purchaseCost: 800,
+      costType: "total",
+      purpose: "Meat",
+      location: "Pig Pen 1",
+      status: "active",
+      weightHistory: [
+        { date: daysAgo(50), weightKg: 15 },
+        { date: daysAgo(30), weightKg: 35 },
+        { date: daysAgo(10), weightKg: 55 },
+      ],
+      healthRecords: [],
+    },
+    {
+      ownerId,
+      farmerId: farmer._id,
+      livestockType: "Sheep",
+      breed: "Merino",
+      batchName: "Lamb Flock 2025-004",
+      quantity: 15,
+      acquisitionDate: daysAgo(90),
+      purchaseCost: 1200,
+      costType: "total",
+      purpose: "Wool",
+      location: "Sheep Pasture A",
+      status: "active",
+      weightHistory: [],
+      healthRecords: [],
+    },
+    {
+      ownerId,
+      farmerId: farmer._id,
+      livestockType: "Cattle",
+      breed: "Friesian",
+      batchName: "Dairy Herd 2025-005",
+      quantity: 8,
+      acquisitionDate: daysAgo(120),
+      purchaseCost: 4800,
+      costType: "total",
+      purpose: "Milk",
+      location: "Barn A",
+      status: "active",
+      weightHistory: [],
+      healthRecords: [],
+    },
+    {
+      ownerId,
+      farmerId: farmer._id,
+      livestockType: "Goat",
+      breed: "Saanen",
+      batchName: "Dairy Goats 2025-006",
+      quantity: 12,
+      acquisitionDate: daysAgo(75),
+      purchaseCost: 960,
+      costType: "total",
+      purpose: "Milk",
+      location: "Goat Shed",
+      status: "active",
+      weightHistory: [],
+      healthRecords: [],
+    },
+    {
+      ownerId,
+      farmerId: farmer._id,
+      livestockType: "Rabbit",
+      breed: "New Zealand White",
+      batchName: "Meat Rabbits 2025-007",
+      quantity: 30,
+      acquisitionDate: daysAgo(45),
+      purchaseCost: 450,
+      costType: "total",
+      purpose: "Meat",
+      location: "Rabbit Hutch",
+      status: "active",
+      weightHistory: [],
+      healthRecords: [],
+    },
   ]);
+
+  // Create expense records for animals with purchase costs
+  const animalExpenses = animals
+    .filter(animal => animal.purchaseCost > 0)
+    .map(animal => ({
+      ownerId,
+      farmerId: farmer._id,
+      category: "Livestock",
+      description: `Purchase of ${animal.batchName} (${animal.livestockType})`,
+      amount: animal.purchaseCost,
+      date: animal.acquisitionDate,
+      livestockBatchId: animal._id,
+      notes: `Acquisition cost for ${animal.quantity} ${animal.livestockType}${animal.quantity > 1 ? 's' : ''}`,
+    }));
+
+  if (animalExpenses.length > 0) {
+    await Expense.insertMany(animalExpenses);
+  }
 
   await Medicine.insertMany([
     {
@@ -179,7 +237,7 @@ async function seedFarmer(ownerId, farmerInput) {
       quantity: 12,
       unit: "kg",
       date: daysAgo(3),
-      notes: "Morning feeding",
+      notes: "Morning feeding for broiler batch",
     },
     {
       ownerId,
@@ -190,7 +248,7 @@ async function seedFarmer(ownerId, farmerInput) {
       quantity: 4,
       unit: "kg",
       date: daysAgo(2),
-      notes: "Evening ration",
+      notes: "Evening ration for layer batch",
     },
   ]);
 
@@ -201,19 +259,23 @@ async function seedFarmer(ownerId, farmerInput) {
       date: daysAgo(10),
       buyer: "Sunrise Butchery",
       items: [
-        { animalId: animals[1]._id, description: "Boer goat", amount: 220 },
+        {
+          animalId: animals[0]._id,
+          description: "Broiler chickens",
+          amount: 220,
+        },
       ],
       totalAmount: 220,
-      notes: "Delivered live weight",
+      notes: "Sold 20 broiler chickens",
     },
     {
       ownerId,
       farmerId: farmer._id,
       date: daysAgo(40),
-      buyer: "Daily Dairy Co-op",
-      items: [{ description: "Milk supply", amount: 540 }],
+      buyer: "Local Market",
+      items: [{ description: "Egg supply", amount: 540 }],
       totalAmount: 540,
-      notes: "Weekly milk collection",
+      notes: "Weekly egg collection from layers",
     },
   ]);
 
@@ -240,21 +302,21 @@ async function seedFarmer(ownerId, farmerInput) {
     {
       ownerId,
       farmerId: farmer._id,
-      title: "Vaccinate goat herd",
-      description: "Administer clostridial booster",
+      title: "Vaccinate broiler batch",
+      description: "Administer Newcastle vaccine to broiler batch",
       dueDate: daysAgo(-2),
       status: "completed",
-      relatedAnimalId: animals[1]._id,
+      relatedAnimalId: animals[0]._id,
       tags: ["health", "vaccination"],
     },
     {
       ownerId,
       farmerId: farmer._id,
       title: "Weigh broiler batch",
-      description: "Record weights for batch 201",
+      description: "Record weights for broiler batch 2025-001",
       dueDate: daysAgo(-1),
       status: "pending",
-      relatedAnimalId: animals[2]._id,
+      relatedAnimalId: animals[0]._id,
       tags: ["weight", "broilers"],
     },
   ]);
@@ -264,14 +326,14 @@ async function seedFarmer(ownerId, farmerInput) {
       ownerId,
       farmerId: farmer._id,
       type: "health",
-      message: "Recorded vaccination for Sprout.",
-      relatedEntityId: animals[1]._id,
+      message: "Recorded vaccination for broiler batch.",
+      relatedEntityId: animals[0]._id,
     },
     {
       ownerId,
       farmerId: farmer._id,
       type: "sale",
-      message: "Logged sale to Sunrise Butchery for $220.",
+      message: "Logged sale of broiler chickens for $220.",
       relatedEntityId: null,
     },
     {
