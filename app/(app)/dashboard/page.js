@@ -38,7 +38,7 @@ async function getDashboardData(ownerId) {
       {
         $match: {
           ownerId,
-          date: { $gte: new Date(new Date().setDate(1)) },
+          saleDate: { $gte: new Date(new Date().setDate(1)) },
         },
       },
       { $group: { _id: null, total: { $sum: "$totalAmount" } } },
@@ -68,7 +68,7 @@ async function getDashboardData(ownerId) {
       { $match: { ownerId } },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m", date: "$date" } },
+          _id: { $dateToString: { format: "%Y-%m", date: "$saleDate" } },
           total: { $sum: "$totalAmount" },
         },
       },

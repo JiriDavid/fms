@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node .seed.js",
-    "migrate-animals": "node .migrate-animals.js"
+    "migrate-animals": "node .migrate-animals.js",
+    "migrate-inventory": "node .migrate-inventory.js",
+    "drop-animal-index": "node .drop-animal-index.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.3.1",

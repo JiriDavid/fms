@@ -1,14 +1,17 @@
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-import { requireUserId } from "@/lib/auth";
+import { requireUserId, getCurrentUser } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import {
   jsonResponse,
   errorResponse,
   parseRequestBody,
 } from "@/lib/api-helpers";
+import { ensureFarmerProfile } from "@/lib/farmers";
+import { logActivity } from "@/lib/activity";
 import Medicine from "@/models/Medicine";
+import Expense from "@/models/Expense";
 
 export async function GET() {
   try {
@@ -51,6 +54,12 @@ export async function POST(request) {
     if (!purchaseDate) return errorResponse("Purchase date is required", 400);
     if (!expiryDate) return errorResponse("Expiry date is required", 400);
 
+    const clerkUser = await getCurrentUser();
+    const farmer = await ensureFarmerProfile({
+      ownerId,
+      email: clerkUser?.emailAddresses?.[0]?.emailAddress,
+    });
+
     const medicine = await Medicine.create({
       ownerId,
       name,
@@ -64,6 +73,31 @@ export async function POST(request) {
       batchNumber,
       dosageInstructions,
       notes,
+    });
+
+    // Create expense record for medicine purchase
+    if (Number(cost) > 0) {
+      await Expense.create({
+        ownerId,
+        farmerId: farmer._id,
+        category: "Medicine",
+        description: `Purchase of ${name} (${quantityPurchased} ${unit})`,
+        amount: Number(cost),
+        date: new Date(purchaseDate),
+        supplier: supplier || undefined,
+        notes: `Medicine purchase: ${name}${
+          batchNumber ? ` (Batch: ${batchNumber})` : ""
+        }`,
+      });
+    }
+
+    await logActivity({
+      ownerId,
+      farmerId: farmer._id,
+      type: "inventory",
+      message: `Purchased ${quantityPurchased} ${unit} of ${name} for $${Number(
+        cost
+      ).toFixed(2)}.`,
     });
 
     return jsonResponse({ data: medicine }, { status: 201 });

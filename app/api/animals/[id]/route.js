@@ -105,9 +105,6 @@ export async function PUT(request, { params }) {
 
     return jsonResponse({ data: animal });
   } catch (error) {
-    if (error.code === 11000) {
-      return errorResponse("Batch name already exists for this farm", 409);
-    }
     return errorResponse(error);
   }
 }

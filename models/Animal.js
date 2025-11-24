@@ -84,6 +84,6 @@ const AnimalSchema = new Schema(
   { timestamps: true }
 );
 
-AnimalSchema.index({ ownerId: 1, batchName: 1 }, { unique: true });
+AnimalSchema.index({ ownerId: 1, batchName: 1 });
 
 export default mongoose.models.Animal || mongoose.model("Animal", AnimalSchema);

@@ -16,24 +16,26 @@ export async function PUT(request, { params }) {
     const { id } = params;
     await connectToDatabase();
     const body = await parseRequestBody(request);
-    const { date, buyer, items, notes } = body;
+    const {
+      productSold,
+      quantity,
+      unitPrice,
+      totalAmount,
+      saleDate,
+      buyer,
+      livestockBatchId,
+      notes,
+    } = body;
 
     const update = {};
-    if (date) update.date = new Date(date);
-    if (buyer) update.buyer = buyer;
+    if (productSold) update.productSold = productSold;
+    if (quantity !== undefined) update.quantity = Number(quantity);
+    if (unitPrice !== undefined) update.unitPrice = Number(unitPrice);
+    if (totalAmount !== undefined) update.totalAmount = Number(totalAmount);
+    if (saleDate) update.saleDate = new Date(saleDate);
+    if (buyer !== undefined) update.buyer = buyer;
+    if (livestockBatchId !== undefined) update.livestockBatchId = livestockBatchId;
     if (notes !== undefined) update.notes = notes;
-    if (items) {
-      const normalizedItems = items.map((item) => ({
-        animalId: item.animalId || undefined,
-        description: item.description,
-        amount: Number(item.amount),
-      }));
-      update.items = normalizedItems;
-      update.totalAmount = normalizedItems.reduce(
-        (sum, item) => sum + (item.amount || 0),
-        0
-      );
-    }
 
     const sale = await Sale.findOneAndUpdate({ _id: id, ownerId }, update, {
       new: true,

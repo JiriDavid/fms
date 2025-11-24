@@ -1,10 +1,1 @@
-{
-  "/api/animals/route": "app/api/animals/route.js",
-  "/api/expenses/route": "app/api/expenses/route.js",
-  "/(app)/reports/page": "app/(app)/reports/page.js",
-  "/(app)/profile/page": "app/(app)/profile/page.js",
-  "/(app)/animals/page": "app/(app)/animals/page.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/animals/new/page": "app/(app)/animals/new/page.js",
-  "/(app)/expenses/page": "app/(app)/expenses/page.js"
-}
+{}

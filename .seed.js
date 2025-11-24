@@ -191,7 +191,7 @@ async function seedFarmer(ownerId, farmerInput) {
     await Expense.insertMany(animalExpenses);
   }
 
-  await Medicine.insertMany([
+  const medicines = await Medicine.insertMany([
     {
       ownerId,
       name: "Ivermectin",
@@ -200,6 +200,7 @@ async function seedFarmer(ownerId, farmerInput) {
       dosageInstructions: "1ml per 50kg subcutaneous",
       quantityOnHand: 6,
       expiryDate: daysAgo(-120),
+      cost: 120,
     },
     {
       ownerId,
@@ -209,8 +210,27 @@ async function seedFarmer(ownerId, farmerInput) {
       dosageInstructions: "Add 10ml per 20L water",
       quantityOnHand: 3,
       expiryDate: daysAgo(-200),
+      cost: 45,
     },
   ]);
+
+  // Create expense records for medicines with purchase costs
+  const medicineExpenses = medicines
+    .filter((medicine) => medicine.cost > 0)
+    .map((medicine) => ({
+      ownerId,
+      farmerId: farmer._id,
+      category: "Medicine",
+      description: `Purchase of ${medicine.name}`,
+      amount: medicine.cost,
+      date: new Date(),
+      supplier: medicine.supplier,
+      notes: `Medicine purchase: ${medicine.name} (${medicine.quantityOnHand} units)`,
+    }));
+
+  if (medicineExpenses.length > 0) {
+    await Expense.insertMany(medicineExpenses);
+  }
 
   const feeds = await Feed.insertMany([
     {
@@ -228,6 +248,24 @@ async function seedFarmer(ownerId, farmerInput) {
       cost: 160,
     },
   ]);
+
+  // Create expense records for feeds with purchase costs
+  const feedExpenses = feeds
+    .filter((feed) => feed.cost > 0)
+    .map((feed) => ({
+      ownerId,
+      farmerId: farmer._id,
+      category: "Feed",
+      description: `Purchase of ${feed.type}`,
+      amount: feed.cost,
+      date: new Date(),
+      supplier: feed.supplier,
+      notes: `Feed purchase: ${feed.type} (${feed.quantityKg}kg)`,
+    }));
+
+  if (feedExpenses.length > 0) {
+    await Expense.insertMany(feedExpenses);
+  }
 
   await UsageLog.insertMany([
     {
@@ -286,17 +324,17 @@ async function seedFarmer(ownerId, farmerInput) {
       ownerId,
       farmerId: farmer._id,
       date: daysAgo(8),
-      category: "Feed",
+      category: "Equipment",
       amount: 180,
-      notes: "Purchased dairy concentrate",
+      notes: "Purchased feeding equipment",
     },
     {
       ownerId,
       farmerId: farmer._id,
       date: daysAgo(5),
-      category: "Medicine",
+      category: "Utilities",
       amount: 45,
-      notes: "Vitamin booster",
+      notes: "Electricity bill",
     },
   ]);
 
