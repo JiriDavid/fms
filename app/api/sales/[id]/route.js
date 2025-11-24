@@ -34,7 +34,8 @@ export async function PUT(request, { params }) {
     if (totalAmount !== undefined) update.totalAmount = Number(totalAmount);
     if (saleDate) update.saleDate = new Date(saleDate);
     if (buyer !== undefined) update.buyer = buyer;
-    if (livestockBatchId !== undefined) update.livestockBatchId = livestockBatchId;
+    if (livestockBatchId !== undefined)
+      update.livestockBatchId = livestockBatchId;
     if (notes !== undefined) update.notes = notes;
 
     const sale = await Sale.findOneAndUpdate({ _id: id, ownerId }, update, {
