@@ -13,7 +13,10 @@ import { connectToDatabase } from "./lib/mongodb.js";
 async function dropAnimalTagIdIndex() {
   console.log("MONGODB_URI:", process.env.MONGODB_URI ? "Set" : "Not set");
   console.log("MONGODB_URI value:", process.env.MONGODB_URI);
-  console.log("CLERK_SECRET_KEY:", process.env.CLERK_SECRET_KEY ? "Set" : "Not set");
+  console.log(
+    "CLERK_SECRET_KEY:",
+    process.env.CLERK_SECRET_KEY ? "Set" : "Not set"
+  );
 
   if (!process.env.MONGODB_URI) {
     console.error(
