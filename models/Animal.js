@@ -86,4 +86,27 @@ const AnimalSchema = new Schema(
 
 AnimalSchema.index({ ownerId: 1, batchName: 1 });
 
+// Ensure we drop any old problematic indexes on startup
+AnimalSchema.post('init', async function() {
+  try {
+    const collection = this.collection;
+    const indexes = await collection.indexes();
+    
+    // Check for old tagId index and drop it
+    const tagIdIndex = indexes.find(index => 
+      index.name === 'ownerId_1_tagId_1' || 
+      (index.key.ownerId && index.key.tagId)
+    );
+    
+    if (tagIdIndex) {
+      console.log('Dropping old problematic index:', tagIdIndex.name);
+      await collection.dropIndex(tagIdIndex.name);
+      console.log('Successfully dropped old tagId index');
+    }
+  } catch (error) {
+    // Silently ignore index drop errors in production
+    console.warn('Could not drop old index (this is usually fine):', error.message);
+  }
+});
+
 export default mongoose.models.Animal || mongoose.model("Animal", AnimalSchema);

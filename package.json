@@ -10,7 +10,8 @@
     "seed": "node .seed.js",
     "migrate-animals": "node .migrate-animals.js",
     "migrate-inventory": "node .migrate-inventory.js",
-    "drop-animal-index": "node .drop-animal-index.js"
+    "drop-animal-index": "node .drop-animal-index.js",
+    "drop-animal-tagid-index": "node .drop-animal-tagid-index.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.3.1",
