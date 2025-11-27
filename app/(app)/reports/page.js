@@ -6,12 +6,16 @@ import Card from "@/components/Card";
 import ChartCard from "@/components/ChartCard";
 import Table from "@/components/Table";
 
-const defaultRange = () => ({
-  startDate: new Date(new Date().getFullYear(), 0, 1)
-    .toISOString()
-    .slice(0, 10),
-  endDate: new Date().toISOString().slice(0, 10),
-});
+const defaultRange = () => {
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - 6); // Last 6 months
+
+  return {
+    startDate: startDate.toISOString().slice(0, 10),
+    endDate: endDate.toISOString().slice(0, 10),
+  };
+};
 
 export default function ReportsPage() {
   const [{ startDate, endDate }, setRange] = useState(defaultRange);
@@ -96,7 +100,15 @@ export default function ReportsPage() {
 
   function downloadCSV(type) {
     const query = new URLSearchParams({ startDate, endDate });
-    window.open(`/api/reports/export/${type}?${query.toString()}`, "_blank");
+    const url = `/api/reports/export/${type}?${query.toString()}`;
+
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${type}-report.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   return (
