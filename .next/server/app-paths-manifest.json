@@ -1,11 +1,6 @@
 {
-  "/api/reports/profit-loss/route": "app/api/reports/profit-loss/route.js",
-  "/api/reports/feed-consumption/route": "app/api/reports/feed-consumption/route.js",
-  "/api/reports/export/[type]/route": "app/api/reports/export/[type]/route.js",
-  "/api/sales/route": "app/api/sales/route.js",
-  "/api/animals/route": "app/api/animals/route.js",
-  "/(app)/reports/page": "app/(app)/reports/page.js",
   "/(app)/page": "app/(app)/page.js",
-  "/(app)/dashboard/page": "app/(app)/dashboard/page.js",
-  "/(app)/sales/page": "app/(app)/sales/page.js"
+  "/(app)/reports/page": "app/(app)/reports/page.js",
+  "/(app)/sales/page": "app/(app)/sales/page.js",
+  "/(app)/dashboard/page": "app/(app)/dashboard/page.js"
 }

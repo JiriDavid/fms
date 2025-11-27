@@ -103,7 +103,7 @@ export default function ReportsPage() {
     const url = `/api/reports/export/${type}?${query.toString()}`;
 
     // Create a temporary anchor element to trigger download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = `${type}-report.csv`;
     document.body.appendChild(link);
