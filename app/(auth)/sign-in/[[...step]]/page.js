@@ -7,13 +7,13 @@ export const metadata = {
 
 export default function SignInPage() {
   return (
-    <div className="space-y-6">
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-semibold text-slate-900">Welcome back</h1>
+    <div className="space-y-6 flex max-w-md mx-auto py-12 justify-center">
+      {/* <div className="space-y-2 text-center">
+        <h1 className="text-2xl font-semibold text-slate-900">Farm Track Auth</h1>
         <p className="text-sm text-slate-500">
           Sign in to manage herd records, inventory, and finances.
         </p>
-      </div>
+      </div> */}
       <SignIn
         appearance={{
           elements: {
@@ -23,7 +23,7 @@ export default function SignInPage() {
         afterSignInUrl="/dashboard"
         redirectUrl="/dashboard"
       />
-      <p className="text-center text-sm text-slate-500">
+      {/* <p className="text-center text-sm text-slate-500">
         New to FarmTrack?{" "}
         <Link
           href="/sign-up"
@@ -31,7 +31,7 @@ export default function SignInPage() {
         >
           Create an account
         </Link>
-      </p>
+      </p> */}
     </div>
   );
 }

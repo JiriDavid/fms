@@ -16,20 +16,20 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/(app)/dashboard/page": [
+    "/(auth)/sign-in/[[...step]]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/dashboard/page.js"
+      "static/chunks/app/(auth)/sign-in/[[...step]]/page.js"
     ],
-    "/(app)/reports/page": [
+    "/(auth)/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/reports/page.js"
+      "static/chunks/app/(auth)/layout.js"
     ],
-    "/(app)/sales/page": [
+    "/_not-found/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(app)/sales/page.js"
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }
